@@ -7,7 +7,7 @@ from sudoku_extractor.utils import *
 from config import constants
 
 
-class Extract:
+class Process:
 
     def __init__(self, path):
         self.path = path
@@ -19,19 +19,9 @@ class Extract:
         self.corners = None
         self.cropped_image = None
 
-        self.dilate_kernel = np.array([[0., 1., 0.], [1., 1., 1.], [0., 1., 0.]], np.uint8)
-
-    def show_image(self):
-        cv2.imshow("Sudoku Image", self.img)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-
     def extract_image(self):
-        self.img_processed = cv2.GaussianBlur(self.img.copy(), (constants.GAUSSIAN_BLUR_KSIZE, constants.GAUSSIAN_BLUR_KSIZE), 0)
-        self.img_processed = cv2.adaptiveThreshold(self.img_processed, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
-        self.img_processed = cv2.bitwise_not(self.img_processed, self.img_processed)
 
-        self.img_processed = cv2.dilate(self.img_processed, self.dilate_kernel)
+        self.img_processed = get_preprocessed_image(self.img, get_dilated_img=True)
 
         self.contours = self._get_contours()
         self.contours = sorted(self.contours, key=cv2.contourArea, reverse=True)
@@ -43,7 +33,7 @@ class Extract:
         return self.cropped_image
 
     def _get_contours(self):
-        contours, hierarchy = cv2.findContours(self.img_processed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        contours, hierarchy = cv2.findContours(self.img_processed.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         return contours
 
     def _get_corners(self):
